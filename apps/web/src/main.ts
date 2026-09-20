@@ -1,0 +1,18 @@
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import { ElDialog, ElDrawer, ElMessage, ElMessageBox } from 'element-plus';
+import 'element-plus/es/components/dialog/style/css';
+import 'element-plus/es/components/drawer/style/css';
+import 'element-plus/es/components/message/style/css';
+import 'element-plus/es/components/message-box/style/css';
+import './style.css';
+import App from './App.vue';
+import { router } from './router';
+const app = createApp(App);
+app.use(createPinia());
+app.use(router);
+app.use(ElDialog);
+app.use(ElDrawer);
+app.config.globalProperties.$message = ElMessage;
+app.config.globalProperties.$confirm = ElMessageBox.confirm;
+app.mount('#app');

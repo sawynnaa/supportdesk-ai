@@ -1,0 +1,11 @@
+node_modules
+.pnpm-store
+.data
+.env
+.env.*
+!.env.example
+.git
+dist
+playwright-report
+test-results
+.DS_Store

@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+// SQL migration is authoritative for checks, compound FKs and partial/vector indexes.
+model User {
+ id String @id
+ email String @unique
+ password_hash String
+ display_name String
+ @@map("users")
+}
+model Session {
+ token_hash String @id
+ user_id String?
+ csrf String
+ expires_at DateTime @db.Timestamptz
+ @@map("sessions")
+}
+model Workspace {
+ id String @id
+ name String
+ @@map("workspaces")
+}
+model Membership {
+ workspace_id String
+ user_id String
+ role String?
+ @@id([workspace_id,user_id])
+ @@map("memberships")
+}
+model Ticket {
+ id String @id
+ number Int @default(autoincrement())
+ workspace_id String
+ title String
+ description String
+ priority String
+ status String @default("open")
+ assignee_id String?
+ created_by String
+ source_conversation_id String?
+ version Int @default(1)
+ created_at DateTime? @default(now()) @db.Timestamptz
+ updated_at DateTime? @default(now()) @db.Timestamptz
+ @@unique([workspace_id,id])
+ @@index([workspace_id,status,updated_at(sort: Desc)],map:"tickets_filter")
+ @@map("tickets")
+}
+model TicketComment {
+ id String @id
+ workspace_id String
+ ticket_id String
+ author_id String?
+ body String
+ created_at DateTime? @default(now()) @db.Timestamptz
+ @@map("ticket_comments")
+}
+model AuditLog {
+ id String @id
+ workspace_id String
+ actor_id String?
+ entity_type String
+ entity_id String
+ action String
+ before_data Json?
+ after_data Json?
+ request_id String?
+ created_at DateTime? @default(now()) @db.Timestamptz
+ @@map("audit_logs")
+}
+model Conversation {
+ id String @id
+ workspace_id String
+ owner_id String
+ title String
+ created_at DateTime? @default(now()) @db.Timestamptz
+ updated_at DateTime? @default(now()) @db.Timestamptz
+ @@unique([workspace_id,id])
+ @@map("conversations")
+}
+model AiRun {
+ id String @id
+ workspace_id String
+ conversation_id String
+ owner_id String?
+ status String
+ model String
+ prompt_version String? @default("v1")
+ content String? @default("")
+ question String
+ client_request_id String
+ error_code String?
+ usage Json?
+ latency Int?
+ regenerated_from String?
+ created_at DateTime? @default(now()) @db.Timestamptz
+ updated_at DateTime? @default(now()) @db.Timestamptz
+ @@unique([workspace_id,id])
+ @@unique([conversation_id,client_request_id])
+ @@map("ai_runs")
+}
+model Message {
+ id String @id
+ workspace_id String
+ conversation_id String
+ role String
+ content String @default("")
+ status String
+ run_id String
+ created_at DateTime? @default(now()) @db.Timestamptz
+ @@unique([workspace_id,id])
+ @@index([conversation_id,created_at],map:"messages_order")
+ @@map("messages")
+}
+model Document {
+ id String @id
+ workspace_id String
+ title String
+ active_version_id String?
+ deleted_at DateTime? @db.Timestamptz
+ created_at DateTime? @default(now()) @db.Timestamptz
+ updated_at DateTime? @default(now()) @db.Timestamptz
+ @@unique([workspace_id,id])
+ @@map("documents")
+}
+model DocumentVersion {
+ id String @id
+ workspace_id String
+ document_id String
+ version_no Int
+ body String
+ content_hash String
+ status String @default("pending")
+ error String?
+ embedding_model String?
+ embedding_dimension Int?
+ created_at DateTime? @default(now()) @db.Timestamptz
+ @@unique([document_id,version_no])
+ @@unique([workspace_id,id])
+ @@map("document_versions")
+}
+model DocumentChunk {
+ id String @id
+ workspace_id String
+ version_id String
+ chunk_index Int
+ heading String
+ start_offset Int
+ end_offset Int
+ text String
+ embedding Unsupported("vector")
+ @@unique([version_id,chunk_index])
+ @@index([workspace_id,version_id],map:"chunks_scope")
+ @@map("document_chunks")
+}
+model MessageCitation {
+ id String @id
+ workspace_id String
+ message_id String
+ chunk_id String
+ version_id String
+ label String
+ quoted_text String
+ @@map("message_citations")
+}
+model Job {
+ id String @id
+ workspace_id String
+ type String
+ payload Json
+ status String @default("pending")
+ attempts Int? @default(0)
+ run_after DateTime? @default(now()) @db.Timestamptz
+ locked_until DateTime? @db.Timestamptz
+ locked_by String?
+ last_error String?
+ created_at DateTime? @default(now()) @db.Timestamptz
+ @@index([status,run_after],map:"jobs_claim")
+ @@map("jobs")
+}
+model ToolDraft {
+ id String @id
+ workspace_id String
+ conversation_id String
+ run_id String?
+ created_by String
+ payload Json
+ status String @default("pending")
+ version Int? @default(1)
+ ticket_id String? @unique
+ expires_at DateTime @db.Timestamptz
+ created_at DateTime? @default(now()) @db.Timestamptz
+ @@map("tool_drafts")
+}
+model IdempotencyRecord {
+ workspace_id String
+ actor_id String
+ operation String
+ key String
+ request_hash String
+ response Json
+ created_at DateTime? @default(now()) @db.Timestamptz
+ @@id([workspace_id,actor_id,operation,key])
+ @@map("idempotency_records")
+}
+model AiUsageLimit {
+ scope String
+ window_start DateTime @db.Timestamptz
+ used Int
+ @@id([scope,window_start])
+ @@map("ai_usage_limits")
+}

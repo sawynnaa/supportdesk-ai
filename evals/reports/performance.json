@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-19T16:21:50.197Z",
+  "engine": "PGlite WASM PostgreSQL",
+  "hardware": "Apple M5",
+  "platform": "darwin arm64",
+  "node": "v22.22.0",
+  "memoryGB": 24,
+  "rows": 10012,
+  "concurrency": 1,
+  "warmup": 20,
+  "samples": 200,
+  "coldMs": 0.7497919999999567,
+  "p50": 0.2374169999999367,
+  "p95": 0.316791999999964,
+  "p99": 0.45441700000003493,
+  "scope": "DB 查询耗时，不含 HTTP、网络、鉴权，不能宣称普通 API p95 达标"
+}
