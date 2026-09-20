@@ -30,7 +30,7 @@ export function useConversation() {
   async function select(cid: string) {
     if (busy.value) return;
     const serial = ++selection;
-    error.value = '';
+    if (current.value !== cid) error.value = '';
     current.value = cid;
     void router.replace({ query: { ...route.query, c: cid } });
     try {

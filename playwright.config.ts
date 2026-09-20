@@ -16,9 +16,11 @@ export default defineConfig({
   ],
   webServer: {
     command: 'pnpm dev',
-    url: 'http://127.0.0.1:5173',
+    // Vite can listen before the API finishes seeding. Hitting health through the
+    // proxy waits for both processes, otherwise the first login gets an empty 502.
+    url: 'http://127.0.0.1:5173/api/health',
     reuseExistingServer: !process.env.CI,
-    timeout: 60000,
+    timeout: 120000,
     env: { DATA_DIR: '.data/e2e', AI_MODE: 'mock', REAL_AI_ENABLED: 'false', AI_DAILY_LIMIT: '1000' },
   },
 });

@@ -11,6 +11,15 @@ let csrf = '';
 export function setCsrf(value: string) {
   csrf = value;
 }
+async function readJson(response: Response) {
+  const text = await response.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new ApiError(response.status, 'INVALID_RESPONSE', '服务暂不可用，请稍后重试');
+  }
+}
 export async function api<T = any>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch('/api' + path, {
     ...options,
@@ -21,7 +30,7 @@ export async function api<T = any>(path: string, options: RequestInit = {}): Pro
     },
     credentials: 'same-origin',
   });
-  const data = await response.json();
+  const data = await readJson(response);
   if (!response.ok) {
     if (response.status === 401) window.dispatchEvent(new Event('session-expired'));
     throw new ApiError(response.status, data.code, data.message || '请求失败');

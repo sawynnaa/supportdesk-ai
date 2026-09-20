@@ -4,7 +4,7 @@ async function login(page: any, role = 'admin') {
   await page.getByLabel('邮箱地址').fill(role + '@demo.com');
   await page.getByLabel('密码', { exact: true }).fill('Demo123456!');
   await page.getByRole('button', { name: '登录工作区', exact: true }).click();
-  await expect(page).toHaveURL(/\/tickets/);
+  await expect(page).toHaveURL(/\/tickets/, { timeout: 15000 });
 }
 test('login, create, assign, comment and resolve a ticket', async ({ page }) => {
   await login(page);
@@ -69,6 +69,7 @@ test('mock failure and stop are recoverable', async ({ page }) => {
   await page.getByLabel('模拟场景').selectOption('failure');
   await page.getByLabel('客户问题').fill('CSV 数据导入有什么限制？');
   await page.getByRole('button', { name: '发送问题', exact: true }).click();
+  await expect(page.locator('.message-status').last()).toHaveText('生成失败', { timeout: 15000 });
   await expect(page.getByRole('alert')).toContainText('模拟生成中断');
   await page.getByLabel('模拟场景').selectOption('slow');
   await page.getByRole('button', { name: '重新生成', exact: true }).click();
